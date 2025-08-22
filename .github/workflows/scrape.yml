@@ -1,0 +1,33 @@
+name: Scrape Needles Sale
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # runs daily at 00:00 UTC (09:00 JST)
+  workflow_dispatch:
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4
+
+      - name: Run scraper
+        run: python scraper.py
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/data.json
+          # Only commit if there are changes
+          git diff --cached --quiet docs/data.json || git commit -m "Update data.json"
+          git push
