@@ -42,7 +42,12 @@
       .then(function(data) {
         var feed = document.getElementById('feed');
         feed.innerHTML = '';
-        data.forEach(function(item) {
+ 
+            if (!data || data.length === 0) {
+      feed.innerHTML = 'No sale items found. Please check back later.';
+      return;
+    }
+data.forEach(function(item) {
           var div = document.createElement('div');
           div.className = 'product';
           var link = document.createElement('a');
