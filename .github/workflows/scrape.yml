@@ -1,9 +1,9 @@
 name: Scrape Needles Sale
 
 on:
-  schedule:
-    - cron: '0 0 * * *'  # runs daily at 00:00 UTC (09:00 JST)
-  workflow_dispatch:
+  s
+#    - cron: '0 0 * * *'  # runs daily at 00:00 UTC (09:00 JST)
+      workflow_dispatch:
 permissions:
   contents: write
 
