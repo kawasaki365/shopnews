@@ -59,23 +59,80 @@ def fetch_end():
     return products
 
 
+def fetch_nepenthes():
+    """Fetch Needles track pants from Nepenthes online store."""
+    url = 'https://onlinestore.nepenthes.co.jp/collections/needles-pant/products.json'
+    products = []
+    try:
+        resp = requests.get(url)
+        data = resp.json()
+        for prod in data.get('products', []):
+            title = prod.get('title', '')
+            # Only include items with 'Track' in the title
+            if 'TRACK' not in title.upper():
+                continue
+            handle = prod.get('handle', '')
+            product_url = f"https://onlinestore.nepenthes.co.jp/products/{handle}"
+            # Price is in yen as string; convert to integer and format
+            variant = prod.get('variants', [{}])[0]
+            price_str = variant.get('price', '')
+            try:
+                price_int = int(price_str)
+                price = f"\u00a5{price_int:,}"
+            except Exception:
+                price = price_str
+            images = prod.get('images', [])
+            image = images[0].get('src', '') if images else ''
+            published_at = prod.get('published_at', '')
+            products.append({
+                'title': title,
+                'url': product_url,
+                'price': price,
+                'image': image,
+                'published_at': published_at
+            })
+    except Exception:
+        # If any error occurs, return current products
+        pass
+    return products
+
+
+def fetch_daytona():
+    """Placeholder for Daytona Park scraping. Currently returns empty list."""
+    return []
+
+
+def fetch_parco():
+    """Placeholder for online.parco.jp scraping. Currently returns empty list."""
+    return []
+
+
 def main():
     all_products = []
+    # Gather products from all sources
     all_products += fetch_ssense()
     all_products += fetch_end()
-    # deduplicate by url
+    all_products += fetch_nepenthes()
+    all_products += fetch_daytona()
+    all_products += fetch_parco()
+    # Deduplicate by URL
     seen = set()
     unique_products = []
     for item in all_products:
-        if item.get('url') and item['url'] not in seen:
-            seen.add(item['url'])
+        url_key = item.get('url', '')
+        if url_key and url_key not in seen:
+            seen.add(url_key)
             unique_products.append(item)
-    # ensure docs directory exists
+    # Sort by published_at descending (empty strings will sort last)
+    unique_products.sort(key=lambda x: x.get('published_at', ''), reverse=True)
+    # Limit to top 10 newest
+    top_products = unique_products[:10]
+    # Ensure docs directory exists
     import os
     os.makedirs('docs', exist_ok=True)
-    # write to docs/data.json
+    # Write to docs/data.json
     with open('docs/data.json', 'w', encoding='utf-8') as f:
-        json.dump(unique_products, f, ensure_ascii=False, indent=2)
+        json.dump(top_products, f, ensure_ascii=False, indent=2)
 
 
 if __name__ == '__main__':
